@@ -1,25 +1,19 @@
 ﻿using MimiSharp.Context;
+using MimiSharp.Middleware;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace MimiSharp.Routing
+namespace MimiSharp
 {
-
     /// <summary>
-    /// Add routing functionality.
-    /// Store the handlers for each route and method.
-    /// 
     /// Manages route registration and handler retrieval.
     /// </summary>
     public class Router
     {
-        //  method , { path , handler }
         private readonly Dictionary<string, Dictionary<string, Func<MimiContext, Task>>> _routes;
-
+        private readonly Dictionary<string, Dictionary<string, List<IMiddleware>>> _routeMiddlewares;
 
         /// <summary>
         /// Initializes a new instance of the Router class.
@@ -27,6 +21,7 @@ namespace MimiSharp.Routing
         public Router()
         {
             _routes = new Dictionary<string, Dictionary<string, Func<MimiContext, Task>>>(StringComparer.OrdinalIgnoreCase);
+            _routeMiddlewares = new Dictionary<string, Dictionary<string, List<IMiddleware>>>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -40,8 +35,24 @@ namespace MimiSharp.Routing
             if (!_routes.ContainsKey(method))
             {
                 _routes[method] = new Dictionary<string, Func<MimiContext, Task>>(StringComparer.OrdinalIgnoreCase);
+                _routeMiddlewares[method] = new Dictionary<string, List<IMiddleware>>(StringComparer.OrdinalIgnoreCase);
             }
             _routes[method][path] = handler;
+        }
+
+        /// <summary>
+        /// Registers middleware for a specific route.
+        /// </summary>
+        /// <param name="method">The HTTP method.</param>
+        /// <param name="path">The route path.</param>
+        /// <param name="middleware">The middleware to register.</param>
+        public void RegisterRouteMiddleware(string method, string path, IMiddleware middleware)
+        {
+            if (!_routeMiddlewares.ContainsKey(method) || !_routeMiddlewares[method].ContainsKey(path))
+            {
+                _routeMiddlewares[method][path] = new List<IMiddleware>();
+            }
+            _routeMiddlewares[method][path].Add(middleware);
         }
 
         /// <summary>
@@ -51,9 +62,10 @@ namespace MimiSharp.Routing
         /// <param name="path">The request path.</param>
         /// <param name="routeParams">The route parameters extracted from the path.</param>
         /// <returns>The handler function if found; otherwise, null.</returns>
-        public Func<MimiContext, Task>? GetHandler(string method, string path, out Dictionary<string, string> routeParams)
+        public Func<MimiContext, Task>? GetHandler(string method, string path, out Dictionary<string, string> routeParams, out List<IMiddleware> middlewares)
         {
             routeParams = new Dictionary<string, string>();
+            middlewares = new List<IMiddleware>();
             if (_routes.TryGetValue(method, out var routes))
             {
                 foreach (var route in routes)
@@ -67,28 +79,15 @@ namespace MimiSharp.Routing
                         {
                             routeParams[paramNames[i].Groups[1].Value] = match.Groups[i + 1].Value;
                         }
+                        if (_routeMiddlewares[method].ContainsKey(route.Key))
+                        {
+                            middlewares = _routeMiddlewares[method][route.Key];
+                        }
                         return route.Value;
                     }
                 }
             }
             return null;
         }
-
-        //public Func<MimiContext, Task>? GetHandler(string method, string path)
-        //{
-        //    if (_routes.TryGetValue(method, out var routes) && routes.TryGetValue(path, out var handler))
-        //    {
-        //        return handler;
-        //    }
-        //    return null;
-        //}
-
-
-
-
-
-
-
     }
 }
-

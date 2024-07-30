@@ -1,6 +1,5 @@
 ﻿using MimiSharp.Context;
 using MimiSharp.Middleware;
-using MimiSharp.Routing;
 using System.Text.RegularExpressions;
 
 namespace MimiSharp
@@ -9,14 +8,28 @@ namespace MimiSharp
     {   
             static async Task Main(string[] args)
             {
-                var app = new WebServer("127.0.0.1", 8580);
+            var app = new WebServer("127.0.0.1", 8580);
 
-            // Add Middleware to the pipeline
-                app.Use(new ErrorHandlingMiddleware());
-                app.Use(new AuthenticationMiddleware());
-                app.Use(new LoggingMiddleware());
-                app.Use(new RateLimitingMiddleware(5, TimeSpan.FromMinutes(1)));
+             // Add Middleware to the pipeline
+            app.Use(new ErrorHandlingMiddleware());
+            app.Use(new AuthenticationMiddleware());
+            app.Use(new LoggingMiddleware());
+            app.Use(new RateLimitingMiddleware(5, TimeSpan.FromMinutes(1)));
 
+                // Add middleware to specific routes
+                app.Use("POST", "/users/create", new AuthenticationMiddleware());
+                app.Use("PUT", "/users/{id}", new AuthenticationMiddleware());
+                app.Use("DELETE", "/users/{id}", new AuthenticationMiddleware());
+                app.Use("GET", "/search", new RateLimitingMiddleware(5, TimeSpan.FromMinutes(1)));
+
+
+            // Define a route group with the prefix /api/v1
+            var v1 = app.Group("/api/v1");
+            v1.Get("/user", async ctx =>
+            {
+                ctx.Response.SetBody(new { message = "User endpoint" }, "application/json");
+                await ctx.Response.SendAsync();
+            });
 
 
             app.Get("/", async ctx =>
@@ -61,7 +74,7 @@ namespace MimiSharp
                     await ctx.Response.SendAsync();
                 });
 
-               await app.Start();
+                app.Start();
                 Console.ReadLine();
             }
 
