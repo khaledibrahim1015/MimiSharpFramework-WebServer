@@ -1,12 +1,12 @@
-### MimiSharp - Custom Lightweight Web Server Framework
+## MimiSharp - Custom Lightweight Web Server Framework
 MimiSharp is a lightweight, flexible web server framework built from scratch in C#. It provides a simple yet powerful way to create web applications with routing, middleware support, and easy request/response handling.
 Features
-# 1. Basic HTTP Server
+### 1.HTTP Server
 
 Built on top of TcpListener for handling incoming connections
 Supports asynchronous request handling
 
-# 2. Routing System
+### 2. Routing System
 
 Flexible routing with support for route parameters
 HTTP method-based routing (GET, POST, PUT, DELETE)
