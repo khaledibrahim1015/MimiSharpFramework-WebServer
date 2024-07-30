@@ -64,11 +64,11 @@ Flexible routing system allows for complex applications
 
 Built with async/await pattern for efficient handling of concurrent requests
 
-12. Port Management
+# 12. Port Management
 
 Automatic port selection if the preferred port is in use
 
-13. Grouping Routes
+# 13. Grouping Routes
 
 Ability to group routes with a common prefix
 
@@ -77,7 +77,7 @@ Installation
 [Provide instructions on how to include the framework in a project]
 
 # Basic Usage
-``csharp
+```csharp
 using MimiSharp;
 
 var app = new WebServer("127.0.0.1", 8080);
@@ -90,7 +90,7 @@ app.Get("/", async ctx =>
 
 app.Start();
 Console.ReadLine();
-``
+```
 
 # Adding Middleware
 ```csharp
